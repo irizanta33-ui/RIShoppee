@@ -1,0 +1,161 @@
+<!--
+Shopee-style Shop - Pure HTML + Tailwind (Modernized Blue-Purple Theme)
+- Bisa dipakai langsung di GitHub Pages (index.html)
+- Warna utama: biru → ungu (gradient)
+- Hover effect, modern UI
+-->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iqbalcryptoguy Shop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .gradient-bg { background: linear-gradient(90deg, #4f46e5, #9333ea); }
+    .btn-main { @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-md px-4 py-2 font-medium shadow hover:opacity-90 transition; }
+    .btn-small { @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded px-2 py-1 text-sm hover:opacity-90; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="gradient-bg shadow-md sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4 text-white">
+      <div class="flex items-center gap-2">
+        <img src="Screenshot 2025-09-02 230308.png" alt="Logo" class="h-8 w-8 object-contain">
+        <div class="text-lg font-bold">iqbalcryptoguy</div>
+      </div>
+      <div class="flex-1">
+        <div class="flex gap-2">
+          <input id="search" placeholder="Cari produk..." class="w-full rounded-md border px-3 py-2 outline-none text-gray-800">
+          <button class="btn-main">Search</button>
+        </div>
+      </div>
+      <div>
+        <button id="cartBtn" class="relative">
+          🛒
+          <span id="cartCount" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 hidden">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Sidebar -->
+    <aside class="md:col-span-1 bg-white p-4 rounded-xl shadow">
+      <h3 class="font-semibold mb-3 text-indigo-700">Kategori</h3>
+      <div id="categories" class="flex flex-wrap gap-2"></div>
+    </aside>
+
+    <!-- Products -->
+    <section class="md:col-span-3">
+      <div class="bg-white p-3 rounded-xl shadow mb-4">
+        <div id="productCount" class="text-sm text-slate-600">Menampilkan 0 produk</div>
+      </div>
+      <div id="products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+    </section>
+  </main>
+
+  <!-- Cart Drawer -->
+  <div id="cartDrawer" class="fixed inset-0 z-30 hidden">
+    <div class="flex-1 bg-black/40" onclick="toggleCart(false)"></div>
+    <div class="w-full md:w-96 bg-white shadow-lg p-6 overflow-y-auto rounded-l-xl">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-semibold text-indigo-700">Keranjang</h3>
+        <button onclick="toggleCart(false)" class="text-slate-600">✖</button>
+      </div>
+      <div id="cartItems" class="mt-4"></div>
+      <div class="mt-4">
+        <div class="flex items-center justify-between text-lg">
+          <div class="text-slate-600">Total</div>
+          <div id="cartTotal" class="font-bold text-indigo-700">Rp 0</div>
+        </div>
+        <button onclick="checkout()" class="btn-main w-full mt-4">Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-10 py-6 text-center text-sm text-slate-600">© <span id="year"></span> RizantaQC</footer>
+
+  <script>
+    const products = [
+      {id:1,title:'Kamera Mirrorless Mini',price:2499000,sold:128,rating:4.7,img:'https://images.unsplash.com/photo-1519183071298-a2962beadea7?w=400'},
+      {id:2,title:'Headphone Wireless',price:349000,sold:512,rating:4.5,img:'https://images.unsplash.com/photo-1518444022626-3d59a5b49b5f?w=400'},
+      {id:3,title:'Smartwatch Sport',price:599000,sold:341,rating:4.3,img:'https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=400'},
+      {id:4,title:'Tas Ransel Anti Air',price:179000,sold:204,rating:4.6,img:'https://images.unsplash.com/photo-1520975698518-6f8f28f7a5cc?w=400'}
+    ];
+
+    const categories = ['All','Elektronik','Fashion','Rumah','Olahraga'];
+    let currentCategory = 'All';
+    let cart = [];
+
+    function rupiah(n){return 'Rp '+n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+
+    function renderProducts(){
+      const q = document.getElementById('search').value.toLowerCase();
+      const list = products.filter(p => (currentCategory==='All'||p.title.toLowerCase().includes(currentCategory.toLowerCase())) && p.title.toLowerCase().includes(q));
+      document.getElementById('productCount').innerText = `Menampilkan ${list.length} produk`;
+      document.getElementById('products').innerHTML = list.map(p=>`
+        <article class='bg-white rounded-xl shadow hover:shadow-lg transition transform hover:scale-[1.02] overflow-hidden'>
+          <img src='${p.img}' class='w-full h-40 object-cover'>
+          <div class='p-3'>
+            <h4 class='text-sm font-medium h-12 overflow-hidden'>${p.title}</h4>
+            <div class='mt-2 text-indigo-700 font-semibold'>${rupiah(p.price)}</div>
+            <div class='text-xs text-slate-500'>Terjual ${p.sold} ⭐ ${p.rating}</div>
+            <button onclick='addToCart(${p.id})' class='btn-small mt-2 w-full'>Beli</button>
+          </div>
+        </article>`).join('');
+    }
+
+    function renderCategories(){
+      document.getElementById('categories').innerHTML = categories.map(cat=>
+        `<button onclick='setCategory("${cat}")' class='px-3 py-1 rounded-full text-sm ${currentCategory===cat?"bg-gradient-to-r from-indigo-600 to-purple-600 text-white":"bg-slate-100 text-gray-700"}'>${cat}</button>`
+      ).join('');
+    }
+
+    function setCategory(cat){currentCategory=cat;renderCategories();renderProducts();}
+
+    function addToCart(id){
+      const item = products.find(p=>p.id===id);
+      const exists = cart.find(c=>c.id===id);
+      if(exists){exists.qty++} else {cart.push({...item,qty:1})}
+      updateCart();
+    }
+
+    function removeFromCart(id){cart=cart.filter(c=>c.id!==id);updateCart();}
+
+    function changeQty(id,delta){const c=cart.find(c=>c.id===id);if(c){c.qty=Math.max(1,c.qty+delta);updateCart();}}
+
+    function updateCart(){
+      document.getElementById('cartCount').classList.toggle('hidden',cart.length===0);
+      document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.qty,0);
+      document.getElementById('cartItems').innerHTML = cart.map(i=>`
+        <div class='flex gap-3 py-3 border-b'>
+          <img src='${i.img}' class='w-16 h-16 object-cover rounded'>
+          <div class='flex-1'>
+            <div class='font-medium'>${i.title}</div>
+            <div class='text-sm text-slate-600'>${rupiah(i.price)} x ${i.qty}</div>
+            <div class='mt-2 flex gap-2'>
+              <button onclick='changeQty(${i.id},-1)' class='px-2 border rounded'>-</button>
+              <span>${i.qty}</span>
+              <button onclick='changeQty(${i.id},1)' class='px-2 border rounded'>+</button>
+              <button onclick='removeFromCart(${i.id})' class='text-red-600 text-sm ml-3'>Hapus</button>
+            </div>
+          </div>
+        </div>`).join('');
+      document.getElementById('cartTotal').innerText = rupiah(cart.reduce((s,i)=>s+i.price*i.qty,0));
+    }
+
+    function toggleCart(show){document.getElementById('cartDrawer').classList.toggle('hidden',!show);}
+
+    function checkout(){alert('Simulasi checkout — tambahkan integrasi pembayaran di sini');}
+
+    document.getElementById('cartBtn').onclick=()=>toggleCart(true);
+    document.getElementById('search').oninput=renderProducts;
+    document.getElementById('year').innerText=new Date().getFullYear();
+
+    renderCategories();
+    renderProducts();
+  </script>
+</body>
+</html>
